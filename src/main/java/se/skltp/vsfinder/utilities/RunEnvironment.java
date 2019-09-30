@@ -1,4 +1,4 @@
-package com.vsfinder.finder.utilities;
+package se.skltp.vsfinder.utilities;
 
 public class RunEnvironment {
 

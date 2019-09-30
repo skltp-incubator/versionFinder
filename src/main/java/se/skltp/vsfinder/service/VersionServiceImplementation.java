@@ -1,12 +1,11 @@
-package com.vsfinder.finder.service;
+package se.skltp.vsfinder.service;
 
-import com.vsfinder.finder.utilities.OperatingSystem;
-import com.vsfinder.finder.utilities.RunEnvironment;
+import se.skltp.vsfinder.utilities.OperatingSystem;
+import se.skltp.vsfinder.utilities.RunEnvironment;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;

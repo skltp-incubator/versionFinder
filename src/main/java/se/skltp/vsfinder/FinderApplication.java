@@ -1,4 +1,4 @@
-package com.vsfinder.finder;
+package se.skltp.vsfinder;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

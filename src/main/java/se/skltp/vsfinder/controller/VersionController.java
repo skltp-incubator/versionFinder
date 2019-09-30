@@ -1,6 +1,6 @@
-package com.vsfinder.finder.controller;
+package se.skltp.vsfinder.controller;
 
-import com.vsfinder.finder.service.VersionService;
+import se.skltp.vsfinder.service.VersionService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;

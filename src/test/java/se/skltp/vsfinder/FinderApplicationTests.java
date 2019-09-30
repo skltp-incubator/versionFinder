@@ -1,4 +1,4 @@
-package com.vsfinder.finder;
+package se.skltp.vsfinder;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

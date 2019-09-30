@@ -1,4 +1,4 @@
-package com.vsfinder.finder.controller;
+package se.skltp.vsfinder.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

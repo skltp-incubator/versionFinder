@@ -1,4 +1,4 @@
-package com.vsfinder.finder.service;
+package se.skltp.vsfinder.service;
 
 import java.util.Map;
 
