@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>com.vsfinder</groupId>
+    <groupId>se.skltp.vsfinder</groupId>
     <artifactId>finder</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>finder</name>
