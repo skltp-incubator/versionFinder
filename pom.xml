@@ -19,6 +19,28 @@
         <java.version>1.8</java.version>
     </properties>
 
+    <scm>
+        <url>https://github.com/skltp-incubator/versionFinder.git</url>
+        <connection>scm:git:https://github.com:443/skltp-incubator/versionFinder.git</connection>
+        <developerConnection>scm:git:https://github.com:443/skltp-incubator/versionFinder.git
+        </developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>release-nexus</id>
+            <name>Release Nexus</name>
+            <url>${releases-nexus-url}</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshot-nexus</id>
+            <name>Snapshot Nexus</name>
+            <url>${snapshot-nexus-url}</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
