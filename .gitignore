@@ -29,3 +29,15 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### irrelevant files ###
+outtarget/
+intarget/
+Dockerfile
+dockerbuild.sh
+app_versions
+test.sh
+test2.sh
+mvnw.cmd
+mvnw
+.mvn/
