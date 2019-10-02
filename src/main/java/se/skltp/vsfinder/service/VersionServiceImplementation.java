@@ -1,5 +1,7 @@
 package se.skltp.vsfinder.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import se.skltp.vsfinder.utilities.OperatingSystem;
 import se.skltp.vsfinder.utilities.RunEnvironment;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +18,7 @@ import java.util.stream.IntStream;
 
 @Service
 public class VersionServiceImplementation implements VersionService {
-
+    private static final Logger log = LoggerFactory.getLogger(VersionServiceImplementation.class);
     //-----
     private static Map<String, String> map = new HashMap<>();
     static int count = 0;
@@ -188,7 +190,7 @@ public class VersionServiceImplementation implements VersionService {
         if (RunEnvironment.getOS() == OperatingSystem.WINDOWS) {
             processArgs = new String[scriptArgs.length + 2];
 
-            System.out.println("WINDOWS");
+            log.debug("System: WINDOWS");
 
             processArgs[0] = "CMD";
             processArgs[1] = "/C";
@@ -197,17 +199,18 @@ public class VersionServiceImplementation implements VersionService {
 
             // If OS is Linux
         } else if (RunEnvironment.getOS() == OperatingSystem.LINUX) {
-            System.out.println("__ LINUX __");
+            log.debug("System: LINUX");
 
             processArgs = scriptArgs;
 
             lol();
-            Arrays.stream(scriptArgs).forEach(System.out::println);
+
+            log.debug("Script args: " + Arrays.toString(scriptArgs));
         }
 
         processBuilder = new ProcessBuilder(processArgs).inheritIO();
 
-        System.out.println(processBuilder.command());
+        log.debug("Command for run sh script: " + processBuilder.command());
 
         try {
             //Executing script starts a new native process
@@ -245,7 +248,7 @@ public class VersionServiceImplementation implements VersionService {
      * @return a map representing the parsed file
      */
     public Map<String, String> parse(String absolutePathToFile, boolean removeHeader) {
-        System.out.println(absolutePathToFile);
+        log.debug("File path: " + absolutePathToFile);
 
         HashMap<String, String> nameVersionMap = new HashMap<>();
 
@@ -260,7 +263,7 @@ public class VersionServiceImplementation implements VersionService {
             while ((line = reader.readLine()) != null) {
                 //Index: 0=name, 1=version, 2=path
                 String[] tokens = line.split("=");
-                System.out.println("[" + tokens[0] + " " + tokens[1] + "]");
+                log.debug("[" + tokens[0] + " " + tokens[1] + "]");
                 nameVersionMap.put(tokens[0], tokens[1]);
             }
 
@@ -296,12 +299,12 @@ public class VersionServiceImplementation implements VersionService {
     }
 
     private void log() {
-        System.out.println(outfile);
-        System.out.println(pathToDirectories);
-        Arrays.stream(directoriesWithApps).forEach(System.out::println);
-        System.out.println(pathToScript);
-        System.out.println(script);
-        System.out.println(targetOutput);
+        log.debug("outfile:" + outfile);
+        log.debug("pathToDirectories: " + pathToDirectories);
+        log.debug("directoriesWithApps: " + Arrays.toString(directoriesWithApps));
+        log.debug("pathToScript: " + pathToScript);
+        log.debug("script: " + script);
+        log.debug("targetOutput: " + targetOutput);
     }
 
     //Could be removed probablyyyyyyyyyyy?
