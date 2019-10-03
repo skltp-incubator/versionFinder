@@ -147,7 +147,8 @@ if [ $# -eq 0 ]; then
   elif [ $# -eq 2 ]; then
     #2 arguments was passed to the script. Run script in specified directory ($1)
     #and give the output file the name of the second argument ($2)
-    OUTPUT_FILENAME="${DIR}/$2"
+    OUTPUT_FILENAME="${2}"
+    #OUTPUT_FILENAME="${DIR}/$2"
 
     #Write present date and time to the output file
     echo "${DATE}" > "$OUTPUT_FILENAME"
