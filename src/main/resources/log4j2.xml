@@ -1,7 +1,7 @@
 <Configuration status="WARN" monitorInterval="30">
   <Properties>
     <Property name="LOG_PATTERN">
-      %d %-5p [%t] %-30c - %m%n
+      %d %-5p %-30c - %m%n
     </Property>
     <Property name="log.dir">
       /var/log/finder
