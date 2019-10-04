@@ -19,18 +19,6 @@ import java.util.stream.IntStream;
 @Service
 public class VersionServiceImplementation implements VersionService {
     private static final Logger log = LoggerFactory.getLogger(VersionServiceImplementation.class);
-    //-----
-    private static Map<String, String> map = new HashMap<>();
-    static int count = 0;
-
-    static {
-        IntStream
-                .rangeClosed(0, 50)
-                .forEach(i -> {
-                    map.put("" + i, "VALUE --> " + i);
-                });
-    }
-    //-----
 
     private String[] directoriesWithApps;   //= new String[]{"war", "apps", "muleapp"};
     private String
@@ -136,7 +124,6 @@ public class VersionServiceImplementation implements VersionService {
 
         //Output stream to file
         try (PrintWriter pw = new PrintWriter(targetOutput + outfileName)) {
-            count++;
 
             for (String file : directoriesWithApps) {
                 File f = new File(targetOutput + file);
@@ -177,7 +164,7 @@ public class VersionServiceImplementation implements VersionService {
      * Runs a shell script.
      *
      * @param scriptArgs the array including the shell script to run and its parameters
-     * @throws IOException if the script fails to run or if the scripts path parameters are invalid paths
+     * @throws IOException          if the script fails to run or if the scripts path parameters are invalid paths
      * @throws InterruptedException if the process running the script is interrupted while it's waited for
      */
     public void runScript(String[] scriptArgs) {
@@ -227,7 +214,7 @@ public class VersionServiceImplementation implements VersionService {
      * Fetches the version of an app in specified directory.
      * Returns an error message if no such app exist.
      *
-     * @param app name of the app whose version to find
+     * @param app         name of the app whose version to find
      * @param environment the environment on which the app is running
      * @return the version of the app
      */
@@ -244,7 +231,7 @@ public class VersionServiceImplementation implements VersionService {
      * Parses file and returns a map with its content.
      *
      * @param absolutePathToFile path to file to parse
-     * @param removeHeader if true, first line of the file is removed
+     * @param removeHeader       if true, first line of the file is removed
      * @return a map representing the parsed file
      */
     public Map<String, String> parse(String absolutePathToFile, boolean removeHeader) {
@@ -275,29 +262,6 @@ public class VersionServiceImplementation implements VersionService {
     }
 
 
-    public Map<String, String> testAll() {
-        return map;
-    }
-
-//    private void logTest() {
-//        ProcessBuilder processBuilder = new ProcessBuilder("ls").inheritIO();
-//        Process process;
-//        try {
-//            process = processBuilder.start();
-//            process.waitFor();
-//
-//            processBuilder = new ProcessBuilder("pwd").inheritIO();
-//            process = processBuilder.start();
-//            process.waitFor();
-//
-////            processBuilder = new ProcessBuilder("cat outtarget/*").inheritIO();
-////            process = processBuilder.start();
-////            process.waitFor();
-//        } catch (IOException | InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
     private void log() {
         log.debug("outfile:" + outfile);
         log.debug("pathToDirectories: " + pathToDirectories);
@@ -307,8 +271,5 @@ public class VersionServiceImplementation implements VersionService {
         log.debug("targetOutput: " + targetOutput);
     }
 
-    //Could be removed probablyyyyyyyyyyy?
-    public String compile(String environmentPath) {
-        return compile(environmentPath, targetOutput);
-    }
+
 }

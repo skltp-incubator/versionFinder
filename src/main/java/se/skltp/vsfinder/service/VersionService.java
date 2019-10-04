@@ -7,5 +7,4 @@ public interface VersionService {
     void runScript(String[] args);
     Map<String, String> parse(String path, boolean removeHeader);
     String getAppVersion(String appName, String environment);
-    Map<String, String> testAll();
 }
