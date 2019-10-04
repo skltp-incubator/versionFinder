@@ -203,7 +203,7 @@ public class VersionServiceImplementation implements VersionService {
 
             processArgs = scriptArgs;
 
-            lol();
+            //logTest();
 
             log.debug("Script args: " + Arrays.toString(scriptArgs));
         }
@@ -279,24 +279,24 @@ public class VersionServiceImplementation implements VersionService {
         return map;
     }
 
-    private void lol() {
-        ProcessBuilder processBuilder = new ProcessBuilder("ls").inheritIO();
-        Process process;
-        try {
-            process = processBuilder.start();
-            process.waitFor();
-
-            processBuilder = new ProcessBuilder("pwd").inheritIO();
-            process = processBuilder.start();
-            process.waitFor();
-
-//            processBuilder = new ProcessBuilder("cat outtarget/*").inheritIO();
+//    private void logTest() {
+//        ProcessBuilder processBuilder = new ProcessBuilder("ls").inheritIO();
+//        Process process;
+//        try {
 //            process = processBuilder.start();
 //            process.waitFor();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
+//
+//            processBuilder = new ProcessBuilder("pwd").inheritIO();
+//            process = processBuilder.start();
+//            process.waitFor();
+//
+////            processBuilder = new ProcessBuilder("cat outtarget/*").inheritIO();
+////            process = processBuilder.start();
+////            process.waitFor();
+//        } catch (IOException | InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     private void log() {
         log.debug("outfile:" + outfile);
