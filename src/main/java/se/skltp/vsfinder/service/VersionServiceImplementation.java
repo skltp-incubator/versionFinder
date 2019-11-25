@@ -175,10 +175,9 @@ public class VersionServiceImplementation implements VersionService {
 
         //If OS is Windows
         if (RunEnvironment.getOS() == OperatingSystem.WINDOWS) {
-            processArgs = new String[scriptArgs.length + 2];
-
             log.debug("System: WINDOWS");
 
+            processArgs = new String[scriptArgs.length + 2];
             processArgs[0] = "CMD";
             processArgs[1] = "/C";
 
@@ -188,11 +187,15 @@ public class VersionServiceImplementation implements VersionService {
         } else if (RunEnvironment.getOS() == OperatingSystem.LINUX) {
             log.debug("System: LINUX");
 
-            processArgs = scriptArgs;
+            processArgs = new String[scriptArgs.length + 5];
+            processArgs[0] = "sudo";
+            processArgs[1] = "-u";
+            processArgs[2] = "ine-app";
+            processArgs[3] = "bash";
+            processArgs[4] = "-c";
 
-            //logTest();
-
-            log.debug("Script args: " + Arrays.toString(scriptArgs));
+            System.arraycopy(scriptArgs, 0, processArgs, 5, scriptArgs.length);
+//sudo -H -u ine-app bash -c 'bash /www/inera/home/ine-app/finder/script/versions.sh'
         }
 
         processBuilder = new ProcessBuilder(processArgs).inheritIO();
