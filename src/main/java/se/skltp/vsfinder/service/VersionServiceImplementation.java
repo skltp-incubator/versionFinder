@@ -21,6 +21,7 @@ public class VersionServiceImplementation implements VersionService {
     private static final Logger log = LoggerFactory.getLogger(VersionServiceImplementation.class);
 
     private String[] directoriesWithApps;   //= new String[]{"war", "apps", "muleapp"};
+    private String[] terminalArguments;
     private String
             outfile,
             pathToDirectories,
@@ -33,13 +34,15 @@ public class VersionServiceImplementation implements VersionService {
                                         @Value("${versionfinder.directories.names}") String[] directoriesWithApps,
                                         @Value("${versionfinder.script.path}") String pathToScript,
                                         @Value("${versionfinder.script.name}") String script,
-                                        @Value("${versionfinder.target.dir.out.name}") String targetOutput) {
+                                        @Value("${versionfinder.target.dir.out.name}") String targetOutput,
+                                        @Value("${versionfinder.terminal.arguments}") String[] terminalArguments) {
         this.outfile = outfile;
         this.pathToDirectories = pathToDirectories;
         this.directoriesWithApps = directoriesWithApps;
         this.pathToScript = pathToScript;
         this.script = script;
         this.targetOutput = targetOutput;
+        this.terminalArguments = terminalArguments;
 
         log();
     }
@@ -104,6 +107,7 @@ public class VersionServiceImplementation implements VersionService {
             //Wait 10 seconds to finish script executions
             executorService.awaitTermination(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
+            log.error("Timeout Error running script");
             return "Timeout Error running script";
         }
 
@@ -145,6 +149,7 @@ public class VersionServiceImplementation implements VersionService {
             return true;
 
         } catch (IOException e) {
+            log.error("Error merging files. Caught exception: ", e);
             e.printStackTrace();
             return false;
 
@@ -207,8 +212,16 @@ public class VersionServiceImplementation implements VersionService {
             Process process = processBuilder.start();
 
             //Wait for native process to finish before continuing
-            process.waitFor();
+            int exitCode = process.waitFor();
+            switch (exitCode) {
+                case 0:
+                    log.debug("Result running script successful with exit code: " + exitCode);
+                    break;
+                default:
+                    log.debug("Bad exit code: " + exitCode);
+            }
         } catch (IOException | InterruptedException e) {
+            log.error("Error running script. Caught exception: ", e);
             e.printStackTrace();
         }
     }
@@ -258,6 +271,7 @@ public class VersionServiceImplementation implements VersionService {
             }
 
         } catch (IOException e) {
+            log.error("Error parsing file. Caught exception: ", e);
             e.printStackTrace();
         }
 
@@ -272,6 +286,7 @@ public class VersionServiceImplementation implements VersionService {
         log.debug("pathToScript: " + pathToScript);
         log.debug("script: " + script);
         log.debug("targetOutput: " + targetOutput);
+        log.debug("terminalArguments" + Arrays.toString(terminalArguments));
     }
 
 
