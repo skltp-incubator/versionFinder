@@ -3,7 +3,6 @@ package se.skltp.vsfinder.controller;
 import se.skltp.vsfinder.service.VersionService;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController

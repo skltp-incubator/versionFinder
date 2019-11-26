@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
 
 @Service
 public class VersionServiceImplementation implements VersionService {
@@ -74,7 +73,9 @@ public class VersionServiceImplementation implements VersionService {
 
         //If path doesn't exist, return
         if (!(new File(pathToDirectories + environmentPath).exists())) {
-            return "INVALID PATH: [" + pathToDirectories + environmentPath + "]";
+            String invalidPathMsg = "INVALID PATH: [" + pathToDirectories + environmentPath + "]";
+            log.error("Error invalid path: " + invalidPathMsg);
+            return invalidPathMsg;
         }
 
         //No specific output was given, use default
@@ -107,7 +108,7 @@ public class VersionServiceImplementation implements VersionService {
             //Wait 10 seconds to finish script executions
             executorService.awaitTermination(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            log.error("Timeout Error running script");
+            log.error("Timeout Error running script: ", e);
             return "Timeout Error running script";
         }
 
@@ -125,6 +126,8 @@ public class VersionServiceImplementation implements VersionService {
      */
     private boolean mergeFiles(String outfileName, String targetOutput) {
         BufferedReader br = null;
+
+        boolean result;
 
         //Output stream to file
         try (PrintWriter pw = new PrintWriter(targetOutput + outfileName)) {
@@ -146,12 +149,12 @@ public class VersionServiceImplementation implements VersionService {
                 pw.flush();
             }
 
-            return true;
+            result = true;
 
         } catch (IOException e) {
             log.error("Error merging files. Caught exception: ", e);
             e.printStackTrace();
-            return false;
+            result = false;
 
         } finally {
             //Close input stream
@@ -159,10 +162,12 @@ public class VersionServiceImplementation implements VersionService {
                 try {
                     br.close();
                 } catch (IOException e) {
+                    log.error("Error closing Buffered Reader. Caught exception: ", e);
                     e.printStackTrace();
                 }
             }
         }
+        return result;
     }
 
     /**
@@ -180,26 +185,33 @@ public class VersionServiceImplementation implements VersionService {
 
         //If OS is Windows
         if (RunEnvironment.getOS() == OperatingSystem.WINDOWS) {
-            log.debug("System: WINDOWS");
+            log.debug("Running script on operating system: WINDOWS");
 
-            processArgs = new String[scriptArgs.length + 2];
-            processArgs[0] = "CMD";
-            processArgs[1] = "/C";
 
-            System.arraycopy(scriptArgs, 0, processArgs, 2, scriptArgs.length);
+            processArgs = new String[terminalArguments.length + scriptArgs.length];
+            System.arraycopy(terminalArguments, 0, processArgs, 0, terminalArguments.length);
+            System.arraycopy(scriptArgs, 0, processArgs, terminalArguments.length, scriptArgs.length);
+//            processArgs = new String[scriptArgs.length + 2];
+//            processArgs[0] = "CMD";
+//            processArgs[1] = "/C";
+
+//            System.arraycopy(scriptArgs, 0, processArgs, 2, scriptArgs.length);
 
             // If OS is Linux
         } else if (RunEnvironment.getOS() == OperatingSystem.LINUX) {
-            log.debug("System: LINUX");
+            log.debug("Running script on operating system: LINUX");
 
-            processArgs = new String[scriptArgs.length + 5];
-            processArgs[0] = "sudo";
-            processArgs[1] = "-u";
-            processArgs[2] = "ine-app";
-            processArgs[3] = "bash";
-            processArgs[4] = "-c";
+//            processArgs = new String[scriptArgs.length + 5];
+//            processArgs[0] = "sudo";
+//            processArgs[1] = "-u";
+//            processArgs[2] = "ine-app";
+//            processArgs[3] = "bash";
+//            processArgs[4] = "-c";
 
-            System.arraycopy(scriptArgs, 0, processArgs, 5, scriptArgs.length);
+            processArgs = new String[terminalArguments.length + scriptArgs.length];
+            System.arraycopy(terminalArguments, 0, processArgs, 0, terminalArguments.length);
+            System.arraycopy(scriptArgs, 0, processArgs, terminalArguments.length, scriptArgs.length);
+//            System.arraycopy(scriptArgs, 0, processArgs, 5, scriptArgs.length);
 //sudo -H -u ine-app bash -c 'bash /www/inera/home/ine-app/finder/script/versions.sh'
         }
 
@@ -213,12 +225,10 @@ public class VersionServiceImplementation implements VersionService {
 
             //Wait for native process to finish before continuing
             int exitCode = process.waitFor();
-            switch (exitCode) {
-                case 0:
-                    log.debug("Result running script successful with exit code: " + exitCode);
-                    break;
-                default:
-                    log.debug("Bad exit code: " + exitCode);
+            if (exitCode == 0) {
+                log.debug("Result running script successful with exit code: " + exitCode);
+            } else {
+                log.debug("Bad exit code: " + exitCode);
             }
         } catch (IOException | InterruptedException e) {
             log.error("Error running script. Caught exception: ", e);
