@@ -86,35 +86,108 @@ public class VersionServiceImplementation implements VersionService {
         }
 
         //Create thread pool
-        int availableProcessors = Runtime.getRuntime().availableProcessors();
-        ExecutorService executorService = new ForkJoinPool(availableProcessors);
+//        int availableProcessors = Runtime.getRuntime().availableProcessors();
+//        ExecutorService executorService = new ForkJoinPool(availableProcessors);
+
+        StringBuilder output = new StringBuilder();
 
         //Run script in every directory in parallel
         for (String dir : directoriesWithApps) {
             String finalTargetOutput = targetOutput;
             String finalEnvironmentPath = environmentPath;
 
-            executorService.submit(() ->
-                    runScript(new String[]{
-                            pathToScript + script,
-                            pathToDirectories + finalEnvironmentPath + dir,
-                            finalTargetOutput + dir
-                    }));
+            runScript(new String[]{
+                    pathToScript + script,
+                    pathToDirectories + finalEnvironmentPath + dir,
+                    finalTargetOutput + dir
+            }, output);
+
+//            executorService.submit(() ->
+//                    runScript(new String[]{
+//                            pathToScript + script,
+//                            pathToDirectories + finalEnvironmentPath + dir,
+//                            finalTargetOutput + dir
+//                    }));
+        }
+        return writeToFile(outfile, output) ?
+                "Compile successful" :
+                "Error merging files. See error log file for more info.";
+
+//        executorService.shutdown();
+//
+//        try {
+//            //Wait 10 seconds to finish script executions
+//            executorService.awaitTermination(10, TimeUnit.SECONDS);
+//        } catch (InterruptedException e) {
+//            log.error("Timeout Error running script: ", e);
+//            return "Timeout Error running script";
+//        }
+//
+//        //Merge resulting files to one and return message on whether merge was ok or not
+//        return mergeFiles(outfile, targetOutput) ? "Compile successful" : "Error merging files";
+    }
+
+    //-------
+    private boolean writeToFile(String outfile, StringBuilder output){
+        File file = new File(targetOutput+outfile);
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))){
+            writer.append(output);
+            return true;
+        } catch (IOException e) {
+            log.error("Error writing to file. Caught Exception: ", e);
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+    public void runScript(String[] scriptArgs, StringBuilder output) {
+
+        ProcessBuilder processBuilder;
+        String[] processArgs = {};
+
+        //If OS is Windows
+        if (RunEnvironment.getOS() == OperatingSystem.WINDOWS) {
+            log.debug("Running script on operating system: WINDOWS");
+
+        // If OS is Linux
+        } else if (RunEnvironment.getOS() == OperatingSystem.LINUX) {
+            log.debug("Running script on operating system: LINUX");
         }
 
-        executorService.shutdown();
+        processArgs = new String[terminalArguments.length + scriptArgs.length];
+        System.arraycopy(terminalArguments, 0, processArgs, 0, terminalArguments.length);
+        System.arraycopy(scriptArgs, 0, processArgs, terminalArguments.length, scriptArgs.length);
+
+        processBuilder = new ProcessBuilder(processArgs).inheritIO();
+
+        log.debug("Command for run sh script: " + processBuilder.command());
 
         try {
-            //Wait 10 seconds to finish script executions
-            executorService.awaitTermination(10, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            log.error("Timeout Error running script: ", e);
-            return "Timeout Error running script";
-        }
+            //Executing script starts a new native process
+            Process process = processBuilder.start();
 
-        //Merge resulting files to one and return message on whether merge was ok or not
-        return mergeFiles(outfile, targetOutput) ? "Compile successful" : "Error merging files";
+            //Wait for native process to finish before continuing
+            int exitCode = process.waitFor();
+            if (exitCode == 0) {
+                log.debug("Result running script successful with exit code: " + exitCode);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                String line = null;
+                while((line = reader.readLine()) != null){
+                    output.append(line);
+                    output.append(System.getProperty("line.separator"));
+                }
+
+            } else {
+                log.debug("Bad exit code: " + exitCode);
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error("Error running script. Caught exception: ", e);
+            e.printStackTrace();
+        }
     }
+    //-------
 
     /**
      * Merges files specified in application properties into one
@@ -177,64 +250,64 @@ public class VersionServiceImplementation implements VersionService {
      * @throws IOException          if the script fails to run or if the scripts path parameters are invalid paths
      * @throws InterruptedException if the process running the script is interrupted while it's waited for
      */
-    public void runScript(String[] scriptArgs) {
-
-        ProcessBuilder processBuilder;
-
-        String[] processArgs = {};
-
-        //If OS is Windows
-        if (RunEnvironment.getOS() == OperatingSystem.WINDOWS) {
-            log.debug("Running script on operating system: WINDOWS");
-
-
-            processArgs = new String[terminalArguments.length + scriptArgs.length];
-            System.arraycopy(terminalArguments, 0, processArgs, 0, terminalArguments.length);
-            System.arraycopy(scriptArgs, 0, processArgs, terminalArguments.length, scriptArgs.length);
-//            processArgs = new String[scriptArgs.length + 2];
-//            processArgs[0] = "CMD";
-//            processArgs[1] = "/C";
-
-//            System.arraycopy(scriptArgs, 0, processArgs, 2, scriptArgs.length);
-
-            // If OS is Linux
-        } else if (RunEnvironment.getOS() == OperatingSystem.LINUX) {
-            log.debug("Running script on operating system: LINUX");
-
-//            processArgs = new String[scriptArgs.length + 5];
-//            processArgs[0] = "sudo";
-//            processArgs[1] = "-u";
-//            processArgs[2] = "ine-app";
-//            processArgs[3] = "bash";
-//            processArgs[4] = "-c";
-
-            processArgs = new String[terminalArguments.length + scriptArgs.length];
-            System.arraycopy(terminalArguments, 0, processArgs, 0, terminalArguments.length);
-            System.arraycopy(scriptArgs, 0, processArgs, terminalArguments.length, scriptArgs.length);
-//            System.arraycopy(scriptArgs, 0, processArgs, 5, scriptArgs.length);
-//sudo -H -u ine-app bash -c 'bash /www/inera/home/ine-app/finder/script/versions.sh'
-        }
-
-        processBuilder = new ProcessBuilder(processArgs).inheritIO();
-
-        log.debug("Command for run sh script: " + processBuilder.command());
-
-        try {
-            //Executing script starts a new native process
-            Process process = processBuilder.start();
-
-            //Wait for native process to finish before continuing
-            int exitCode = process.waitFor();
-            if (exitCode == 0) {
-                log.debug("Result running script successful with exit code: " + exitCode);
-            } else {
-                log.debug("Bad exit code: " + exitCode);
-            }
-        } catch (IOException | InterruptedException e) {
-            log.error("Error running script. Caught exception: ", e);
-            e.printStackTrace();
-        }
-    }
+//    public void runScript(String[] scriptArgs) {
+//
+//        ProcessBuilder processBuilder;
+//
+//        String[] processArgs = {};
+//
+//        //If OS is Windows
+//        if (RunEnvironment.getOS() == OperatingSystem.WINDOWS) {
+//            log.debug("Running script on operating system: WINDOWS");
+//
+//
+//            processArgs = new String[terminalArguments.length + scriptArgs.length];
+//            System.arraycopy(terminalArguments, 0, processArgs, 0, terminalArguments.length);
+//            System.arraycopy(scriptArgs, 0, processArgs, terminalArguments.length, scriptArgs.length);
+////            processArgs = new String[scriptArgs.length + 2];
+////            processArgs[0] = "CMD";
+////            processArgs[1] = "/C";
+//
+////            System.arraycopy(scriptArgs, 0, processArgs, 2, scriptArgs.length);
+//
+//            // If OS is Linux
+//        } else if (RunEnvironment.getOS() == OperatingSystem.LINUX) {
+//            log.debug("Running script on operating system: LINUX");
+//
+////            processArgs = new String[scriptArgs.length + 5];
+////            processArgs[0] = "sudo";
+////            processArgs[1] = "-u";
+////            processArgs[2] = "ine-app";
+////            processArgs[3] = "bash";
+////            processArgs[4] = "-c";
+//
+//            processArgs = new String[terminalArguments.length + scriptArgs.length];
+//            System.arraycopy(terminalArguments, 0, processArgs, 0, terminalArguments.length);
+//            System.arraycopy(scriptArgs, 0, processArgs, terminalArguments.length, scriptArgs.length);
+////            System.arraycopy(scriptArgs, 0, processArgs, 5, scriptArgs.length);
+////sudo -H -u ine-app bash -c 'bash /www/inera/home/ine-app/finder/script/versions.sh'
+//        }
+//
+//        processBuilder = new ProcessBuilder(processArgs).inheritIO();
+//
+//        log.debug("Command for run sh script: " + processBuilder.command());
+//
+//        try {
+//            //Executing script starts a new native process
+//            Process process = processBuilder.start();
+//
+//            //Wait for native process to finish before continuing
+//            int exitCode = process.waitFor();
+//            if (exitCode == 0) {
+//                log.debug("Result running script successful with exit code: " + exitCode);
+//            } else {
+//                log.debug("Bad exit code: " + exitCode);
+//            }
+//        } catch (IOException | InterruptedException e) {
+//            log.error("Error running script. Caught exception: ", e);
+//            e.printStackTrace();
+//        }
+//    }
 
     /**
      * Fetches the version of an app in specified directory.
@@ -251,7 +324,6 @@ public class VersionServiceImplementation implements VersionService {
                 version :
                 "App: [" + app + "] or path [" + path + "] does not exit";
     }
-
 
     /**
      * Parses file and returns a map with its content.
