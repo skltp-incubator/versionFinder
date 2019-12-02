@@ -8,12 +8,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class VersionServiceImplementation implements VersionService {
@@ -145,7 +144,6 @@ public class VersionServiceImplementation implements VersionService {
     public void runScript(String[] scriptArgs, StringBuilder output) {
 
         ProcessBuilder processBuilder;
-        String[] processArgs = {};
 
         //If OS is Windows
         if (RunEnvironment.getOS() == OperatingSystem.WINDOWS) {
@@ -156,11 +154,21 @@ public class VersionServiceImplementation implements VersionService {
             log.debug("Running script on operating system: LINUX");
         }
 
-        processArgs = new String[terminalArguments.length + scriptArgs.length];
-        System.arraycopy(terminalArguments, 0, processArgs, 0, terminalArguments.length);
-        System.arraycopy(scriptArgs, 0, processArgs, terminalArguments.length, scriptArgs.length);
+//        processArgs = new String[terminalArguments.length + scriptArgs.length];
+//        System.arraycopy(terminalArguments, 0, processArgs, 0, terminalArguments.length);
+//        System.arraycopy(scriptArgs, 0, processArgs, terminalArguments.length, scriptArgs.length);
+        String scriptPaths = "\"" + String.join(" ", scriptArgs) + "\"";
+//        String[] processArgs = {};
 
-        processBuilder = new ProcessBuilder(processArgs).inheritIO();
+        ArrayList<String> processArgs = new ArrayList<String>(Arrays.asList(terminalArguments));
+        processArgs.add(scriptPaths);
+
+        logList(processArgs);
+//        processArgs = (String[]) termArgs.toArray();
+
+        String[] args = processArgs.toArray(new String[processArgs.size()]);
+
+        processBuilder = new ProcessBuilder(args);
 
         log.debug("Command for run sh script: " + processBuilder.command());
 
@@ -175,6 +183,7 @@ public class VersionServiceImplementation implements VersionService {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String line = null;
                 while((line = reader.readLine()) != null){
+                    log.debug("Read output: " + line);
                     output.append(line);
                     output.append(System.getProperty("line.separator"));
                 }
@@ -186,6 +195,12 @@ public class VersionServiceImplementation implements VersionService {
             log.error("Error running script. Caught exception: ", e);
             e.printStackTrace();
         }
+    }
+
+    private void logList(List<String> processArgs) {
+        StringBuilder builder = new StringBuilder();
+        processArgs.forEach(builder::append);
+        log.debug("PROCESS ARGUMENTS: " + builder.toString());
     }
     //-------
 
