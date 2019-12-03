@@ -9,9 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -84,49 +81,28 @@ public class VersionServiceImplementation implements VersionService {
             targetOutput = this.targetOutput + formatParameterToPath(targetOutput);
         }
 
-        //Create thread pool
-//        int availableProcessors = Runtime.getRuntime().availableProcessors();
-//        ExecutorService executorService = new ForkJoinPool(availableProcessors);
-
         StringBuilder output = new StringBuilder();
 
         //Run script in every directory in parallel
         for (String dir : directoriesWithApps) {
-            String finalTargetOutput = targetOutput;
-            String finalEnvironmentPath = environmentPath;
 
             runScript(new String[]{
                     pathToScript + script,
-                    pathToDirectories + finalEnvironmentPath + dir,
-                    finalTargetOutput + dir
+                    pathToDirectories + environmentPath + dir,
+                    targetOutput + dir
             }, output);
-
-//            executorService.submit(() ->
-//                    runScript(new String[]{
-//                            pathToScript + script,
-//                            pathToDirectories + finalEnvironmentPath + dir,
-//                            finalTargetOutput + dir
-//                    }));
         }
         return writeToFile(outfile, output) ?
                 "Compile successful" :
                 "Error merging files. See error log file for more info.";
-
-//        executorService.shutdown();
-//
-//        try {
-//            //Wait 10 seconds to finish script executions
-//            executorService.awaitTermination(10, TimeUnit.SECONDS);
-//        } catch (InterruptedException e) {
-//            log.error("Timeout Error running script: ", e);
-//            return "Timeout Error running script";
-//        }
-//
-//        //Merge resulting files to one and return message on whether merge was ok or not
-//        return mergeFiles(outfile, targetOutput) ? "Compile successful" : "Error merging files";
     }
 
-    //-------
+    /**
+     *
+     * @param outfile file to be written to
+     * @param output StringBuilder containing content to be written to a file
+     * @return true if everything is written to the file
+     */
     private boolean writeToFile(String outfile, StringBuilder output) {
         File file = new File(targetOutput + outfile);
 
@@ -140,7 +116,13 @@ public class VersionServiceImplementation implements VersionService {
         }
     }
 
-
+    /**
+     * Runs a shell script.
+     *
+     * @param scriptArgs the array including the shell script to run and its parameters
+     * @throws IOException          if the script fails to run or if the scripts path parameters are invalid paths
+     * @throws InterruptedException if the process running the script is interrupted while it's waited for
+     */
     public void runScript(String[] scriptArgs, StringBuilder output) {
 
         ProcessBuilder processBuilder;
@@ -153,11 +135,6 @@ public class VersionServiceImplementation implements VersionService {
         } else if (RunEnvironment.getOS() == OperatingSystem.LINUX) {
             log.debug("Running script on operating system: LINUX");
         }
-
-//        processArgs = new String[terminalArguments.length + scriptArgs.length];
-//        System.arraycopy(terminalArguments, 0, processArgs, 0, terminalArguments.length);
-//        System.arraycopy(scriptArgs, 0, processArgs, terminalArguments.length, scriptArgs.length);
-//        String[] processArgs = {};
 
         String scriptPaths = String.join(" ", scriptArgs);
 
@@ -205,6 +182,8 @@ public class VersionServiceImplementation implements VersionService {
     //-------
 
     /**
+     * __________ NOT USED __________
+     *
      * Merges files specified in application properties into one
      *
      * @param outfileName  name of the resulting file
@@ -212,6 +191,7 @@ public class VersionServiceImplementation implements VersionService {
      * @return whether or not the merge was successful
      * @throws IOException if files or paths doesn't exist
      */
+    @SuppressWarnings("unused")
     private boolean mergeFiles(String outfileName, String targetOutput) {
         BufferedReader br = null;
 
@@ -259,72 +239,6 @@ public class VersionServiceImplementation implements VersionService {
     }
 
     /**
-     * Runs a shell script.
-     *
-     * @param scriptArgs the array including the shell script to run and its parameters
-     * @throws IOException          if the script fails to run or if the scripts path parameters are invalid paths
-     * @throws InterruptedException if the process running the script is interrupted while it's waited for
-     */
-//    public void runScript(String[] scriptArgs) {
-//
-//        ProcessBuilder processBuilder;
-//
-//        String[] processArgs = {};
-//
-//        //If OS is Windows
-//        if (RunEnvironment.getOS() == OperatingSystem.WINDOWS) {
-//            log.debug("Running script on operating system: WINDOWS");
-//
-//
-//            processArgs = new String[terminalArguments.length + scriptArgs.length];
-//            System.arraycopy(terminalArguments, 0, processArgs, 0, terminalArguments.length);
-//            System.arraycopy(scriptArgs, 0, processArgs, terminalArguments.length, scriptArgs.length);
-////            processArgs = new String[scriptArgs.length + 2];
-////            processArgs[0] = "CMD";
-////            processArgs[1] = "/C";
-//
-////            System.arraycopy(scriptArgs, 0, processArgs, 2, scriptArgs.length);
-//
-//            // If OS is Linux
-//        } else if (RunEnvironment.getOS() == OperatingSystem.LINUX) {
-//            log.debug("Running script on operating system: LINUX");
-//
-////            processArgs = new String[scriptArgs.length + 5];
-////            processArgs[0] = "sudo";
-////            processArgs[1] = "-u";
-////            processArgs[2] = "ine-app";
-////            processArgs[3] = "bash";
-////            processArgs[4] = "-c";
-//
-//            processArgs = new String[terminalArguments.length + scriptArgs.length];
-//            System.arraycopy(terminalArguments, 0, processArgs, 0, terminalArguments.length);
-//            System.arraycopy(scriptArgs, 0, processArgs, terminalArguments.length, scriptArgs.length);
-////            System.arraycopy(scriptArgs, 0, processArgs, 5, scriptArgs.length);
-////sudo -H -u ine-app bash -c 'bash /www/inera/home/ine-app/finder/script/versions.sh'
-//        }
-//
-//        processBuilder = new ProcessBuilder(processArgs).inheritIO();
-//
-//        log.debug("Command for run sh script: " + processBuilder.command());
-//
-//        try {
-//            //Executing script starts a new native process
-//            Process process = processBuilder.start();
-//
-//            //Wait for native process to finish before continuing
-//            int exitCode = process.waitFor();
-//            if (exitCode == 0) {
-//                log.debug("Result running script successful with exit code: " + exitCode);
-//            } else {
-//                log.debug("Bad exit code: " + exitCode);
-//            }
-//        } catch (IOException | InterruptedException e) {
-//            log.error("Error running script. Caught exception: ", e);
-//            e.printStackTrace();
-//        }
-//    }
-
-    /**
      * Fetches the version of an app in specified directory.
      * Returns an error message if no such app exist.
      *
@@ -339,6 +253,32 @@ public class VersionServiceImplementation implements VersionService {
                 version :
                 "App: [" + app + "] or path [" + path + "] does not exit";
     }
+
+    @Override
+    public Map<String, Map<String, String>> getAppOnEnv(String app, String environment) {
+        Map<String, String> appsAndVersions = parse(environment, false);
+        Map<String, Map<String, String>> envAppVsMap = new HashMap<>();
+        envAppVsMap.put(environment, appsAndVersions);
+        return envAppVsMap;
+    }
+
+    @Override
+    public Map<String, Map<String, String>> getAppOnAllEnvs(String app) {
+        Map<String, Map<String, String>> envAppVersionMap = new HashMap<>();
+        for (String environment : environments){
+            Map<String, String> appsAndVersions = parse(environment, false);
+
+            //Filter the map and leave only relevant entry with the relevant app
+            appsAndVersions.entrySet()
+                    .stream()
+                    .filter(entry -> entry.getKey().equals(app))
+                    .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
+
+            envAppVersionMap.put(environment, appsAndVersions);
+        }
+        return envAppVersionMap;
+    }
+
 
     /**
      * Parses file and returns a map with its content.
@@ -363,6 +303,8 @@ public class VersionServiceImplementation implements VersionService {
             while ((line = reader.readLine()) != null) {
                 //Index: 0=name, 1=version, 2=path
                 String[] tokens = line.split("=");
+
+                //Makes sure to ignore possible dates
                 if (tokens.length >= 2) {
                     log.debug("[" + tokens[0] + " " + tokens[1] + "]");
                     nameVersionMap.put(tokens[0], tokens[1]);
@@ -379,7 +321,6 @@ public class VersionServiceImplementation implements VersionService {
         return nameVersionMap;
     }
 
-
     private void log() {
         log.debug("outfile:" + outfile);
         log.debug("pathToDirectories: " + pathToDirectories);
@@ -389,6 +330,4 @@ public class VersionServiceImplementation implements VersionService {
         log.debug("targetOutput: " + targetOutput);
         log.debug("terminalArguments" + Arrays.toString(terminalArguments));
     }
-
-
 }
