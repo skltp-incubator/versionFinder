@@ -23,8 +23,12 @@ public class VersionController {
      */
     @RequestMapping(value = "applications/run_script", method = RequestMethod.GET)
     public String compileAllVersions(
-            @RequestParam(value = "where", required = true) String where,
+            @RequestParam(value = "where", required = false) String where,
             @RequestParam(value = "output", required = false) String output) {
+
+        if (where == null) {
+            where = "inera/";
+        }
         return versionService.compile(where, output);
     }
 
@@ -32,9 +36,12 @@ public class VersionController {
     //****************************vettig*************************************************
     @RequestMapping(value = "applications", method = RequestMethod.GET)
     public String getAppOnEnv(
-            @RequestParam(value = "env", required = true) String environment,
+            @RequestParam(value = "env", required = false) String environment,
             @RequestParam(value = "app", required = true) String app) {
 
+        if (environment == null) {
+            environment = "/";
+        }
         return environment + " + " + app + " : " + versionService.getAppVersion(app, environment);
     }
 

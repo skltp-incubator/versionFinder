@@ -127,10 +127,10 @@ public class VersionServiceImplementation implements VersionService {
     }
 
     //-------
-    private boolean writeToFile(String outfile, StringBuilder output){
-        File file = new File(targetOutput+outfile);
+    private boolean writeToFile(String outfile, StringBuilder output) {
+        File file = new File(targetOutput + outfile);
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))){
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             writer.append(output);
             return true;
         } catch (IOException e) {
@@ -149,7 +149,7 @@ public class VersionServiceImplementation implements VersionService {
         if (RunEnvironment.getOS() == OperatingSystem.WINDOWS) {
             log.debug("Running script on operating system: WINDOWS");
 
-        // If OS is Linux
+            // If OS is Linux
         } else if (RunEnvironment.getOS() == OperatingSystem.LINUX) {
             log.debug("Running script on operating system: LINUX");
         }
@@ -157,14 +157,14 @@ public class VersionServiceImplementation implements VersionService {
 //        processArgs = new String[terminalArguments.length + scriptArgs.length];
 //        System.arraycopy(terminalArguments, 0, processArgs, 0, terminalArguments.length);
 //        System.arraycopy(scriptArgs, 0, processArgs, terminalArguments.length, scriptArgs.length);
-        String scriptPaths = "\"" + String.join(" ", scriptArgs) + "\"";
 //        String[] processArgs = {};
+
+        String scriptPaths = String.join(" ", scriptArgs);
 
         ArrayList<String> processArgs = new ArrayList<String>(Arrays.asList(terminalArguments));
         processArgs.add(scriptPaths);
 
         logList(processArgs);
-//        processArgs = (String[]) termArgs.toArray();
 
         String[] args = processArgs.toArray(new String[processArgs.size()]);
 
@@ -182,7 +182,7 @@ public class VersionServiceImplementation implements VersionService {
                 log.debug("Result running script successful with exit code: " + exitCode);
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String line = null;
-                while((line = reader.readLine()) != null){
+                while ((line = reader.readLine()) != null) {
                     log.debug("Read output: " + line);
                     output.append(line);
                     output.append(System.getProperty("line.separator"));
@@ -363,8 +363,12 @@ public class VersionServiceImplementation implements VersionService {
             while ((line = reader.readLine()) != null) {
                 //Index: 0=name, 1=version, 2=path
                 String[] tokens = line.split("=");
-                log.debug("[" + tokens[0] + " " + tokens[1] + "]");
-                nameVersionMap.put(tokens[0], tokens[1]);
+                if (tokens.length >= 2) {
+                    log.debug("[" + tokens[0] + " " + tokens[1] + "]");
+                    nameVersionMap.put(tokens[0], tokens[1]);
+                } else {
+                    log.debug("Date: " + Arrays.toString(tokens));
+                }
             }
 
         } catch (IOException e) {
