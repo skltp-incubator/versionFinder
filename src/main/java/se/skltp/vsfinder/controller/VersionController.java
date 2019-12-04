@@ -3,8 +3,6 @@ package se.skltp.vsfinder.controller;
 import se.skltp.vsfinder.service.VersionService;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -12,8 +10,6 @@ import java.util.Map;
 public class VersionController {
 
     private VersionService versionService;
-
-    private String[] environments = {"dev", "test", "qa", "prod"};
 
     public VersionController(VersionService versionService) {
         this.versionService = versionService;
@@ -34,11 +30,10 @@ public class VersionController {
         if (where == null) {
             where = "inera/";
         }
+
         return versionService.compile(where, output);
     }
 
-    //Map<String, Map<String, String>>
-    //****************************vettig*************************************************
     @RequestMapping(value = "applications", method = RequestMethod.GET)
     public Map<String, Map<String, String>> getAllAppsOnAllEnvironments(
             @RequestParam(value = "env", required = false) String environment,
@@ -55,18 +50,8 @@ public class VersionController {
             return versionService.getAppOnAllEnvs(app);
 
         } else {
-//            getAllAppsOnAllEnvs();
-            return null;
-
+            return versionService.getAllAppsOnAllEnvs();
             //return environment + " + " + app + " : " + versionService.getAppVersion(app, environment);
         }
     }
-
-
-    //@Param whatArg should be 'allversions' for all app names and versions
-//    @RequestMapping(value = "applications/alljson/{whatFile}", method = RequestMethod.GET)
-//    public Map<String, String> getAllAppsAndVersionsForEnvironment(@PathVariable String whatFile) {
-//        return versionService.parse(whatFile, false);
-//    }
-
 }

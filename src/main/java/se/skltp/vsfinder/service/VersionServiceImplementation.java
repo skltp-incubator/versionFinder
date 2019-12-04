@@ -17,6 +17,7 @@ public class VersionServiceImplementation implements VersionService {
 
     private String[] directoriesWithApps;   //= new String[]{"war", "apps", "muleapp"};
     private String[] terminalArguments;
+    private String[] environments = new String[]{"dev", "test", "qa", "prod"};
     private String
             outfile,
             pathToDirectories,
@@ -98,9 +99,8 @@ public class VersionServiceImplementation implements VersionService {
     }
 
     /**
-     *
      * @param outfile file to be written to
-     * @param output StringBuilder containing content to be written to a file
+     * @param output  StringBuilder containing content to be written to a file
      * @return true if everything is written to the file
      */
     private boolean writeToFile(String outfile, StringBuilder output) {
@@ -183,7 +183,7 @@ public class VersionServiceImplementation implements VersionService {
 
     /**
      * __________ NOT USED __________
-     *
+     * <p>
      * Merges files specified in application properties into one
      *
      * @param outfileName  name of the resulting file
@@ -257,26 +257,50 @@ public class VersionServiceImplementation implements VersionService {
     @Override
     public Map<String, Map<String, String>> getAppOnEnv(String app, String environment) {
         Map<String, String> appsAndVersions = parse(environment, false);
+        appsAndVersions = filterMap(app, appsAndVersions);
+
         Map<String, Map<String, String>> envAppVsMap = new HashMap<>();
         envAppVsMap.put(environment, appsAndVersions);
+
         return envAppVsMap;
     }
 
     @Override
     public Map<String, Map<String, String>> getAppOnAllEnvs(String app) {
         Map<String, Map<String, String>> envAppVersionMap = new HashMap<>();
-        for (String environment : environments){
+        for (String environment : environments) {
             Map<String, String> appsAndVersions = parse(environment, false);
 
-            //Filter the map and leave only relevant entry with the relevant app
-            appsAndVersions.entrySet()
-                    .stream()
-                    .filter(entry -> entry.getKey().equals(app))
-                    .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
+            Map<String, String> map = filterMap(app, appsAndVersions);
 
-            envAppVersionMap.put(environment, appsAndVersions);
+            envAppVersionMap.put(environment, map);
         }
         return envAppVersionMap;
+    }
+
+    @Override
+    public Map<String, Map<String, String>> getAllAppsOnAllEnvs() {
+        Map<String, Map<String,String>> allAppsAllEnvs = new HashMap<>();
+
+        Arrays.stream(environments).forEach(environment ->
+                allAppsAllEnvs.put(environment, parse(environment, false))
+        );
+
+        return allAppsAllEnvs;
+    }
+
+    /**
+     * Filter a map and leave only relevant entry with the relevant key
+     *
+     * @param app   the key to be kept when filtered
+     * @param appsAndVersions   the map to be filtered
+     * @return                  a Map with only one (or zero) entry left
+     */
+    private Map<String, String> filterMap(String app, Map<String, String> appsAndVersions) {
+        return appsAndVersions.entrySet()
+                .stream()
+                .filter(entry -> entry.getKey().equals(app))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
 

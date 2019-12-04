@@ -11,4 +11,6 @@ public interface VersionService {
     Map<String, Map<String, String>> getAppOnEnv(String app, String environment);
 
     Map<String, Map<String, String>> getAppOnAllEnvs(String app);
+
+    Map<String, Map<String, String>> getAllAppsOnAllEnvs();
 }
