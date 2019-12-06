@@ -22,16 +22,8 @@ public class VersionController {
      * @return result message on whether it was a successful run or not
      */
     @RequestMapping(value = "applications/run_script", method = RequestMethod.GET)
-    public String compileAllVersions(
-            @RequestParam(value = "where", required = false) String where,
-            @RequestParam(value = "output", required = false) String output) {
-
-
-        if (where == null) {
-            where = "inera/";
-        }
-
-        return versionService.compile(where, output);
+    public String compileAllVersions() {
+        return versionService.compile();
     }
 
     @RequestMapping(value = "applications", method = RequestMethod.GET)

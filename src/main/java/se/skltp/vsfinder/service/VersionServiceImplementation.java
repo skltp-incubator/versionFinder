@@ -17,7 +17,7 @@ public class VersionServiceImplementation implements VersionService {
 
     private String[] directoriesWithApps;   //= new String[]{"war", "apps", "muleapp"};
     private String[] terminalArguments;
-    private String[] environments = new String[]{"dev", "test", "qa", "prod"};
+    private String[] environments;          // = new String[]{"dev", "test", "verifiering", "prod"};
     private String
             outfile,
             pathToDirectories,
@@ -31,7 +31,8 @@ public class VersionServiceImplementation implements VersionService {
                                         @Value("${versionfinder.script.path}") String pathToScript,
                                         @Value("${versionfinder.script.name}") String script,
                                         @Value("${versionfinder.target.dir.out.name}") String targetOutput,
-                                        @Value("${versionfinder.terminal.arguments}") String[] terminalArguments) {
+                                        @Value("${versionfinder.terminal.arguments}") String[] terminalArguments,
+                                        @Value("${versionfinder.directories.environments}") String[] environments) {
         this.outfile = outfile;
         this.pathToDirectories = pathToDirectories;
         this.directoriesWithApps = directoriesWithApps;
@@ -39,6 +40,7 @@ public class VersionServiceImplementation implements VersionService {
         this.script = script;
         this.targetOutput = targetOutput;
         this.terminalArguments = terminalArguments;
+        this.environments = environments;
 
         log();
     }
@@ -50,7 +52,7 @@ public class VersionServiceImplementation implements VersionService {
      * @return a path-friendly string with a forward slash in the end if one is not present
      */
     private String formatParameterToPath(String parameter) {
-        if (parameter.charAt(parameter.length() - 1) != '/') {
+        if (parameter.length() > 0 && parameter.charAt(parameter.length() - 1) != '/') {
             return parameter + "/";
         }
         return parameter;
@@ -60,42 +62,52 @@ public class VersionServiceImplementation implements VersionService {
      * Calls on the script to be run in a given directory and outputs in another given directory.
      * Makes sure that all resulting files are compiled into one.
      *
-     * @param environmentPath path to directory to run script in
-     * @param targetOutput    path to directory in which to put resulting files from a script
      * @return message on whether operation was executed successfully or not
      */
-    public String compile(String environmentPath, String targetOutput) {
+    public String compile() {
 
-        environmentPath = formatParameterToPath(environmentPath);
+//        environmentPath = formatParameterToPath(environmentPath);
 
         //If path doesn't exist, return
-        if (!(new File(pathToDirectories + environmentPath).exists())) {
-            String invalidPathMsg = "INVALID PATH: [" + pathToDirectories + environmentPath + "]";
-            log.error("Error invalid path: " + invalidPathMsg);
-            return invalidPathMsg;
-        }
+
 
         //No specific output was given, use default
-        if (targetOutput == null) {
-            targetOutput = this.targetOutput;
-        } else {
-            targetOutput = this.targetOutput + formatParameterToPath(targetOutput);
+//        if (targetOutput == null) {
+//            targetOutput = this.targetOutput;
+//        } else {
+//            targetOutput = this.targetOutput + formatParameterToPath(targetOutput);
+//        }
+
+        boolean isSuccessful = false;
+
+        StringBuilder output; // = new StringBuilder();
+
+        for (String env : environments) {
+            output = new StringBuilder();
+
+            for (String dir : directoriesWithApps) {
+                runScript(new String[]{
+                        pathToScript + script,
+                        pathToDirectories + formatParameterToPath(env) + dir,
+                        targetOutput + dir
+                }, output);
+            }
+
+            isSuccessful = writeToFile(targetOutput + env, output);
+            if (!isSuccessful) {
+                return "Error merging files. See error log file for more info.";
+            }
         }
 
-        StringBuilder output = new StringBuilder();
+        return "Compile successful";
+    }
 
-        //Run script in every directory in parallel
-        for (String dir : directoriesWithApps) {
-
-            runScript(new String[]{
-                    pathToScript + script,
-                    pathToDirectories + environmentPath + dir,
-                    targetOutput + dir
-            }, output);
+    private boolean pathExist(String path) {
+        if (!(new File(path).exists())) {
+            log.error("Error invalid path: " + path);
+            return false;
         }
-        return writeToFile(outfile, output) ?
-                "Compile successful" :
-                "Error merging files. See error log file for more info.";
+        return true;
     }
 
     /**
@@ -104,7 +116,11 @@ public class VersionServiceImplementation implements VersionService {
      * @return true if everything is written to the file
      */
     private boolean writeToFile(String outfile, StringBuilder output) {
-        File file = new File(targetOutput + outfile);
+//        if (!pathExist(outfile)) {
+//            return false;
+//        }
+
+        File file = new File(outfile);
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             writer.append(output);
@@ -256,7 +272,7 @@ public class VersionServiceImplementation implements VersionService {
 
     @Override
     public Map<String, Map<String, String>> getAppOnEnv(String app, String environment) {
-        Map<String, String> appsAndVersions = parse(environment, false);
+        Map<String, String> appsAndVersions = parse(targetOutput + environment, false);
         appsAndVersions = filterMap(app, appsAndVersions);
 
         Map<String, Map<String, String>> envAppVsMap = new HashMap<>();
@@ -269,7 +285,7 @@ public class VersionServiceImplementation implements VersionService {
     public Map<String, Map<String, String>> getAppOnAllEnvs(String app) {
         Map<String, Map<String, String>> envAppVersionMap = new HashMap<>();
         for (String environment : environments) {
-            Map<String, String> appsAndVersions = parse(environment, false);
+            Map<String, String> appsAndVersions = parse(targetOutput + environment, false);
 
             Map<String, String> map = filterMap(app, appsAndVersions);
 
@@ -280,10 +296,10 @@ public class VersionServiceImplementation implements VersionService {
 
     @Override
     public Map<String, Map<String, String>> getAllAppsOnAllEnvs() {
-        Map<String, Map<String,String>> allAppsAllEnvs = new HashMap<>();
+        Map<String, Map<String, String>> allAppsAllEnvs = new HashMap<>();
 
         Arrays.stream(environments).forEach(environment ->
-                allAppsAllEnvs.put(environment, parse(environment, false))
+                allAppsAllEnvs.put(environment, parse(targetOutput + environment, false))
         );
 
         return allAppsAllEnvs;
@@ -292,9 +308,9 @@ public class VersionServiceImplementation implements VersionService {
     /**
      * Filter a map and leave only relevant entry with the relevant key
      *
-     * @param app   the key to be kept when filtered
-     * @param appsAndVersions   the map to be filtered
-     * @return                  a Map with only one (or zero) entry left
+     * @param app             the key to be kept when filtered
+     * @param appsAndVersions the map to be filtered
+     * @return a Map with only one (or zero) entry left
      */
     private Map<String, String> filterMap(String app, Map<String, String> appsAndVersions) {
         return appsAndVersions.entrySet()
