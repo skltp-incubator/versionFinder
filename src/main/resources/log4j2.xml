@@ -4,7 +4,7 @@
       %d %-5p %-30c - %m%n
     </Property>
     <Property name="log.dir">
-      /var/log/finder
+      /var/log/versionVisualizer
     </Property>
   </Properties>
 
@@ -14,8 +14,8 @@
     </Console>
 
     <RollingRandomAccessFile name="RollingRandomAccessFile"
-                             fileName="${log.dir}/finder.log"
-                             filePattern="${log.dir}/finder.log.%i">
+                             fileName="${log.dir}/versionVisualizer.log"
+                             filePattern="${log.dir}/versionvisualizer.log.%i">
       <PatternLayout>
         <Pattern>%d %-5p [%t] %-30c - %m%n</Pattern>
       </PatternLayout>
@@ -29,7 +29,7 @@
   </Appenders>
 
   <Loggers>
-    <AsyncLogger name="se.skltp.vsfinder" level="DEBUG"/>
+    <AsyncLogger name="se.skltp.visualizer" level="DEBUG"/>
 
     <AsyncRoot level="WARN">
       <AppenderRef ref="RollingRandomAccessFile"/>

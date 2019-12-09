@@ -1,4 +1,4 @@
-package se.skltp.vsfinder.service;
+package se.skltp.visualizer.service;
 
 import java.util.Map;
 

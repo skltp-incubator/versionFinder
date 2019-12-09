@@ -1,9 +1,9 @@
-package se.skltp.vsfinder.service;
+package se.skltp.visualizer.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import se.skltp.vsfinder.utilities.OperatingSystem;
-import se.skltp.vsfinder.utilities.RunEnvironment;
+import se.skltp.visualizer.utilities.OperatingSystem;
+import se.skltp.visualizer.utilities.RunEnvironment;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -25,14 +25,14 @@ public class VersionServiceImplementation implements VersionService {
             script,
             targetOutput;
 
-    public VersionServiceImplementation(@Value("${versionfinder.resulting.outfile}") String outfile,
-                                        @Value("${versionfinder.directories.path}") String pathToDirectories,
-                                        @Value("${versionfinder.directories.names}") String[] directoriesWithApps,
-                                        @Value("${versionfinder.script.path}") String pathToScript,
-                                        @Value("${versionfinder.script.name}") String script,
-                                        @Value("${versionfinder.target.dir.out.name}") String targetOutput,
-                                        @Value("${versionfinder.terminal.arguments}") String[] terminalArguments,
-                                        @Value("${versionfinder.directories.environments}") String[] environments) {
+    public VersionServiceImplementation(@Value("${version.visualizer.resulting.outfile}") String outfile,
+                                        @Value("${version.visualizer.directories.path}") String pathToDirectories,
+                                        @Value("${version.visualizer.directories.names}") String[] directoriesWithApps,
+                                        @Value("${version.visualizer.script.path}") String pathToScript,
+                                        @Value("${version.visualizer.script.name}") String script,
+                                        @Value("${version.visualizer.target.dir.out.name}") String targetOutput,
+                                        @Value("${version.visualizer.terminal.arguments}") String[] terminalArguments,
+                                        @Value("${version.visualizer.directories.environments}") String[] environments) {
         this.outfile = outfile;
         this.pathToDirectories = pathToDirectories;
         this.directoriesWithApps = directoriesWithApps;

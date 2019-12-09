@@ -1,6 +1,6 @@
-package se.skltp.vsfinder.controller;
+package se.skltp.visualizer.controller;
 
-import se.skltp.vsfinder.service.VersionService;
+import se.skltp.visualizer.service.VersionService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;

@@ -1,4 +1,4 @@
-package se.skltp.vsfinder;
+package se.skltp.visualizer;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -7,7 +7,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class FinderApplicationTests {
+public class VersionVisualizerApplicationTests {
 
     @Test
     public void contextLoads() {

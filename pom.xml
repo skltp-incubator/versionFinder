@@ -9,11 +9,11 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>se.skltp.vsfinder</groupId>
-    <artifactId>finder</artifactId>
+    <groupId>se.skltp.visualizer</groupId>
+    <artifactId>versionVisualizer</artifactId>
     <version>0.0.4-SNAPSHOT</version>
-    <name>finder</name>
-    <description>Version finder in Spring Boot</description>
+    <name>versionVisualizer</name>
+    <description>Version visualizer in Spring Boot</description>
 
     <properties>
         <java.version>1.8</java.version>

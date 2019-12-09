@@ -1,4 +1,4 @@
-package se.skltp.vsfinder.utilities;
+package se.skltp.visualizer.utilities;
 
 public class RunEnvironment {
 
